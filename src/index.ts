@@ -41,6 +41,8 @@ export async function oas(cfg: Partial<Config>): Promise<koa.Middleware> {
 
   const validatorMW: koa.Middleware = async (ctx: koa.Context & { params?: any }, next: () => Promise<any>): Promise<void> => {
     try {
+      console.log('aeehoo >>', ctx.request.querystring);
+      console.log('aeehoo after parse >>', qs.parse(ctx.request.querystring, config.qsParseOptions));
       const validRequest = compiled.validateRequestByPath(ctx.path, ctx.request.method, {
         header: ctx.request.header,
         query: qs.parse(ctx.request.querystring, config.qsParseOptions),
