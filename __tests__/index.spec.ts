@@ -15,7 +15,11 @@ describe('Koa Oas3', () => {
       endpoint: '/openapi',
       uiEndpoint: '/openapi.html',
       validatePaths: ['/pets'],
-      validationOptions: { requestBodyAjvOptions: { allErrors: true } } as ChowOptions
+      validationOptions: { requestBodyAjvOptions: { allErrors: true } } as ChowOptions,
+      //FIX is below:
+      // qsParseOptions: {
+      //   depth: 1
+      // } 
     });
   })
 
@@ -131,6 +135,42 @@ describe('Koa Oas3', () => {
     const next = jest.fn();
     await mw(ctx, next);
     expect(ctx.oas!.operationId).toEqual('createEmptyPets');
+  });
+
+  test.only('It should parse querystring stringified object with data', async() => {
+    const ctx = createContext({
+      url: '/pets?metadata=%7B%22client%22:%22file%22,%22crypto-version%22:%220%22,%22iv%22:%22A9AAA%3D%3D%22,%22logical-key%22:%22aasdadasdasd104%22%7D',
+      headers: {
+        'accept': 'application/json'
+      },
+      method: 'GET'
+    });
+    const next = jest.fn();
+    try {
+      await mw(ctx, next);
+      expect(ctx.oas!.request.query.metadata).toEqual('{"client":"file","crypto-version":"0","iv":"A9AAA==","logical-key":"aasdadasdasd104"}')
+    } catch(error) {
+      console.log('errou >>', error);
+      throw error;
+    }
+  });
+
+  test.only('It should parse querystring stringified object without data', async() => {
+    const ctx = createContext({
+      url: '/pets?metadata=%7B%7D',
+      headers: {
+        'accept': 'application/json'
+      },
+      method: 'GET'
+    });
+    const next = jest.fn();
+    try {
+      await mw(ctx, next);
+      expect(ctx.oas!.request.query.metadata).toEqual("{}")
+    } catch(error) {
+      console.log('errou >>', error);
+      throw error;
+    }
   });
 
   describe('Throw ValidationError', () => {
